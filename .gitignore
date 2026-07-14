@@ -1,0 +1,19 @@
+# Python caching
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.venv/
+venv/
+ENV/
+
+# Testing
+.pytest_cache/
+test_output_s.txt
+test_out.txt
+
+# Local IDE files
+.gemini/
+.vscode/
+.idea/

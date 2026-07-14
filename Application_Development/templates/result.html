@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container container-result fade-in">
+    
+    <!-- Top Result Banner -->
+    <section class="glass-panel result-hero-panel text-center">
+        <div class="result-badge-container">
+            <i class="fa-solid fa-square-poll-vertical result-hero-icon text-gradient"></i>
+        </div>
+        <h1 class="result-title">Crop Profiling & Soil Optimization Analysis</h1>
+        <p class="result-subtitle">Model inference executed successfully. Below is your tailored optimization report.</p>
+        
+        <div class="match-summary-cards mt-4">
+            <!-- Recommended Card -->
+            <div class="match-card recommend-card">
+                <span class="card-label">ML Recommendation</span>
+                <h2 class="card-value text-gradient">{{ recommended_crop }}</h2>
+                <div class="confidence-meter-container">
+                    <span class="meter-text">Confidence: {{ confidence }}%</span>
+                    <div class="meter-bar">
+                        <div class="meter-fill" style="width: {{ confidence }}%;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Target Card -->
+            <div class="match-card target-card">
+                <span class="card-label">Target Optimization Crop</span>
+                <h2 class="card-value">{{ target_crop }}</h2>
+                <span class="match-status-pill {% if recommended_crop|lower == target_crop|lower %}match-exact{% else %}match-different{% endif %}">
+                    {% if recommended_crop|lower == target_crop|lower %}
+                        <i class="fa-solid fa-circle-check"></i> Ideal Crop Match
+                    {% else %}
+                        <i class="fa-solid fa-triangle-exclamation"></i> Optimization Required
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Results Grid -->
+    <div class="results-grid mt-4">
+        
+        <!-- Left: Soil Chemical Diagnostics & Action Plan -->
+        <div class="diagnostics-panel">
+            <h2 class="section-title"><i class="fa-solid fa-flask text-gradient"></i> Chemical Diagnostics (NPK & pH)</h2>
+            
+            <div class="nutrient-cards-list">
+                {% for nutrient_key in ['N', 'P', 'K', 'ph'] %}
+                    {% set n_advice = report.advice[nutrient_key] %}
+                    <div class="glass-panel diagnostic-card border-{{ n_advice.severity }}">
+                        <div class="card-header-row">
+                            <h3 class="nutrient-name">
+                                {{ n_advice.name }}
+                            </h3>
+                            <span class="status-badge badge-{{ n_advice.severity }}">
+                                {{ n_advice.status }}
+                            </span>
+                        </div>
+                        
+                        <!-- Value Comparisons -->
+                        <div class="val-comparison-row">
+                            <div class="val-block">
+                                <span class="val-label">Actual Value</span>
+                                <span class="val-num">{{ n_advice.actual }}</span>
+                            </div>
+                            <div class="val-block text-right">
+                                <span class="val-label">Ideal Benchmark</span>
+                                <span class="val-num">{{ n_advice.ideal|round(1) }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar visualization -->
+                        {% set max_limit = features_config[nutrient_key].max %}
+                        {% set act_pct = (n_advice.actual / max_limit * 100) %}
+                        {% set idl_pct = (n_advice.ideal / max_limit * 100) %}
+                        
+                        <div class="comparison-bar-container">
+                            <div class="comparison-bar">
+                                <!-- Ideal marker marker -->
+                                <div class="ideal-marker" style="left: {{ idl_pct }}%;" title="Ideal level: {{ n_advice.ideal|round(1) }}"></div>
+                                <!-- Actual level bar -->
+                                <div class="actual-bar bar-{{ n_advice.severity }}" style="width: {{ act_pct }}%;"></div>
+                            </div>
+                            <div class="bar-labels">
+                                <span>Min: 0</span>
+                                <span class="ideal-lbl-text" style="left: calc({{ idl_pct }}% - 20px);">Ideal: {{ n_advice.ideal|round(1) }}</span>
+                                <span>Max: {{ max_limit }}</span>
+                            </div>
+                        </div>
+
+                        <div class="offset-desc-row mt-3">
+                            <i class="fa-solid fa-circle-info"></i> {{ n_advice.offset_desc }}
+                        </div>
+
+                        <!-- Custom corrective action instructions -->
+                        <div class="action-recommendation-box alert-{{ n_advice.severity }} mt-2">
+                            <strong>Actionable Guideline:</strong> {{ n_advice.action_recommendation }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right: Environmental Diagnostics & Summary Stats -->
+        <div class="environment-panel">
+            <h2 class="section-title"><i class="fa-solid fa-cloud-sun text-gradient"></i> Environmental Diagnostics</h2>
+            
+            <!-- Rainfall diagnostic card -->
+            {% set rain = report.advice['rainfall'] %}
+            <div class="glass-panel diagnostic-card border-{{ rain.severity }} mb-4">
+                <div class="card-header-row">
+                    <h3 class="nutrient-name">Rainfall Requirements</h3>
+                    <span class="status-badge badge-{{ rain.severity }}">{{ rain.status }}</span>
+                </div>
+                
+                <div class="val-comparison-row">
+                    <div class="val-block">
+                        <span class="val-label">Actual Region Input</span>
+                        <span class="val-num">{{ rain.actual }} mm</span>
+                    </div>
+                    <div class="val-block text-right">
+                        <span class="val-label">Ideal For {{ target_crop }}</span>
+                        <span class="val-num">{{ rain.ideal|round(1) }} mm</span>
+                    </div>
+                </div>
+
+                <div class="action-recommendation-box alert-{{ rain.severity }} mt-3">
+                    <strong>Irrigation Advisory:</strong> {{ rain.action_recommendation }}
+                </div>
+            </div>
+
+            <!-- Climate Overview parameters -->
+            <div class="glass-panel diagnostic-card">
+                <h3 class="nutrient-name mb-3"><i class="fa-solid fa-temperature-half text-gradient"></i> Climate Micro-climate Stats</h3>
+                
+                <!-- Temperature -->
+                {% set temp = report.advice['climate']['temperature'] %}
+                <div class="climate-stat-row">
+                    <div class="climate-label">
+                        <strong>Temperature:</strong> Actual: {{ temp.actual }}°C | Ideal: {{ temp.ideal|round(1) }}°C
+                        <span class="badge-inline badge-{% if temp.status == 'Normal' %}success{% else %}warning{% endif %}">{{ temp.status }}</span>
+                    </div>
+                    <p class="climate-text text-muted">{{ temp.action_recommendation }}</p>
+                </div>
+                
+                <hr class="divider">
+
+                <!-- Humidity -->
+                {% set hum = report.advice['climate']['humidity'] %}
+                <div class="climate-stat-row mt-3">
+                    <div class="climate-label">
+                        <strong>Relative Humidity:</strong> Actual: {{ hum.actual }}% | Ideal: {{ hum.ideal|round(1) }}%
+                        <span class="badge-inline badge-{% if hum.status == 'Normal' %}success{% else %}warning{% endif %}">{{ hum.status }}</span>
+                    </div>
+                    <p class="climate-text text-muted">{{ hum.action_recommendation }}</p>
+                </div>
+            </div>
+
+            <!-- Overall Engine Status Widget -->
+            <div class="glass-panel overall-status-card mt-4">
+                <h3>Optimization Assessment</h3>
+                <div class="status-summary-row mt-3">
+                    <div class="status-indicator">
+                        <span class="indicator-dot dot-{{ 'success' if report.deviations_count == 0 else ('warning' if report.deviations_count < 3 else 'danger') }}"></span>
+                        <span class="status-txt">{{ report.overall_status }}</span>
+                    </div>
+                    <p class="status-description mt-2">
+                        We detected <strong>{{ report.deviations_count }} critical parameter deviations</strong> from the optimal growth state of <strong>{{ target_crop }}</strong>. 
+                        {% if report.deviations_count > 0 %}
+                            Applying the recommended actions above will enhance production yields, increase root resistance, and optimize resource cost.
+                        {% else %}
+                            Your land is fully calibrated to grow this crop. No major adjustments are required.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <!-- Actions Row -->
+    <div class="actions-row mt-4 text-center">
+        <a href="{{ url_for('home') }}" class="btn btn-secondary btn-lg" id="back-to-profiler-btn">
+            <i class="fa-solid fa-arrow-left"></i> Adjust Parameters & Re-profile
+        </a>
+    </div>
+
+</div>
+{% endblock %}

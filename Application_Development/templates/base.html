@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiCrop | Smart Agricultural Production Optimization Engine</title>
+    
+    <!-- Meta Descriptions for SEO -->
+    <meta name="description" content="Optimize your farm yield with OptiCrop - a machine learning-powered Smart Agricultural Production Optimization Engine. Predict crops and receive expert soil optimization advice.">
+    <meta name="author" content="OptiCrop Team (K Lohitha, G Sneha, J Dunthala, K Fathima, D Sirisha)">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Background glow grids for high-end aesthetic -->
+    <div class="glow-container">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+
+    <!-- Header / Navbar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('home') }}" class="brand-logo" id="nav-brand-logo">
+                <i class="fa-solid fa-leaf text-gradient"></i>
+                <span class="logo-text">Opti<span class="text-gradient">Crop</span></span>
+            </a>
+            <div class="nav-tagline">Smart Agricultural Production Optimization Engine</div>
+            <nav class="nav-links">
+                <a href="{{ url_for('home') }}" class="nav-link active"><i class="fa-solid fa-house"></i> Home</a>
+                <a href="#about-section" class="nav-link"><i class="fa-solid fa-circle-info"></i> About</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Flash messages for validation warnings / success -->
+        <div class="container container-alert">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} fade-in" id="alert-msg-{{ loop.index }}">
+                            <div class="alert-icon">
+                                {% if category == 'danger' %}
+                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                {% elif category == 'warning' %}
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-circle-check"></i>
+                                {% endif %}
+                            </div>
+                            <div class="alert-content">{{ message }}</div>
+                            <button class="alert-close" onclick="this.parentElement.remove();">&times;</button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <h4 class="brand-logo">
+                    <i class="fa-solid fa-leaf text-gradient"></i>
+                    <span>Opti<span class="text-gradient">Crop</span></span>
+                </h4>
+                <p>Empowering agricultural precision using Machine Learning and data-driven soil engineering.</p>
+            </div>
+            
+            <div class="footer-team">
+                <h5>Academic Project Team</h5>
+                <ul class="team-list">
+                    <li><span class="role">Team Leader:</span> K Lohitha</li>
+                    <li><span class="role">Data Analyst:</span> Gondinigari Sneha</li>
+                    <li><span class="role">Business Analyst:</span> Jahnavi Dunthala</li>
+                    <li><span class="role">ML Engineer:</span> Kalagotla Fathima</li>
+                    <li><span class="role">App Developer:</span> Dhanireddy Sirisha</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 OptiCrop. Developed collaboratively under SmartBridge Academic Program.</p>
+        </div>
+    </footer>
+
+    <!-- Custom Script -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

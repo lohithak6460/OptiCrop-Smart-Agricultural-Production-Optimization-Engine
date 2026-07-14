@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container container-dashboard fade-in">
+    <!-- Hero Banner Dashboard Title -->
+    <section class="hero-section text-center">
+        <h1 class="hero-title">Smart Agricultural Production Optimization Engine</h1>
+        <p class="hero-subtitle">Input your soil properties and environmental variables to identify the ideal crop match and receive customized nutrient correction recommendations.</p>
+    </section>
+
+    <!-- Main Dashboard Grid layout -->
+    <div class="dashboard-grid">
+        
+        <!-- Left Column: Soil and Environment Inputs -->
+        <section class="glass-panel form-panel">
+            <div class="panel-header">
+                <i class="fa-solid fa-flask-vial text-gradient"></i>
+                <h2>Soil & Climate Profiling</h2>
+            </div>
+            
+            <form action="{{ url_for('predict') }}" method="POST" id="crop-profiler-form">
+                <!-- Grid of input variables -->
+                <div class="input-grid">
+                    {% for key, cfg in features_config.items() %}
+                    <div class="form-group" id="group-{{ key }}">
+                        <div class="form-label-row">
+                            <label for="input-{{ key }}" class="form-label">
+                                {{ cfg.name }} 
+                                {% if cfg.unit %}<span class="unit">({{ cfg.unit }})</span>{% endif %}
+                            </label>
+                            <span class="value-display" id="display-{{ key }}">{{ cfg.min }}</span>
+                        </div>
+                        
+                        <div class="input-wrapper">
+                            <!-- Direct number inputs -->
+                            <input type="number" 
+                                   name="{{ key }}" 
+                                   id="input-{{ key }}" 
+                                   class="form-control"
+                                   min="{{ cfg.min }}" 
+                                   max="{{ cfg.max }}" 
+                                   step="any"
+                                   placeholder="e.g. {{ ((cfg.min + cfg.max)/2)|round(1) }}" 
+                                   required>
+                        </div>
+                        
+                        <!-- Premium interactive slider synced with the number input -->
+                        <div class="slider-wrapper">
+                            <input type="range" 
+                                   id="slider-{{ key }}" 
+                                   class="form-slider" 
+                                   min="{{ cfg.min }}" 
+                                   max="{{ cfg.max }}" 
+                                   step="{% if key in ['N', 'P', 'K'] %}1{% else %}0.1{% endif %}"
+                                   value="{{ ((cfg.min + cfg.max)/2)|round(1) }}">
+                            <div class="slider-bounds">
+                                <span>{{ cfg.min }}</span>
+                                <span>{{ cfg.max }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Optimization Target Crop selection -->
+                <div class="form-group target-selection mt-4" id="group-target-crop">
+                    <label for="target_crop" class="form-label">
+                        <i class="fa-solid fa-crosshairs text-gradient"></i> Optimization Target Crop
+                    </label>
+                    <p class="form-help">Select whether to optimize soil parameters for the ML-recommended crop or target a specific crop from the database.</p>
+                    <select name="target_crop" id="target_crop" class="form-control form-select" required>
+                        <option value="__recommended__" selected>(Recommended) Let ML Engine Recommend & Optimize Best Crop</option>
+                        {% for crop in crops %}
+                            <option value="{{ crop }}">{{ crop|capitalize }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-actions mt-4">
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-profiler-btn">
+                        <i class="fa-solid fa-gears"></i> Run Production Optimization Engine
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Right Column: Interactive Analytics and EDA insights -->
+        <div class="analytics-column">
+            <!-- Analytics Widget: Feature Range Table -->
+            <section class="glass-panel analytics-panel">
+                <div class="panel-header">
+                    <i class="fa-solid fa-chart-line text-gradient"></i>
+                    <h2>Parameters Benchmark Scope</h2>
+                </div>
+                <div class="table-responsive">
+                    <table class="benchmark-table" id="benchmarks-info-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Operational Range</th>
+                                <th>Average Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Nitrogen (N)</td>
+                                <td>0 - 140 mg/kg</td>
+                                <td>50.6 mg/kg</td>
+                            </tr>
+                            <tr>
+                                <td>Phosphorus (P)</td>
+                                <td>5 - 145 mg/kg</td>
+                                <td>53.4 mg/kg</td>
+                            </tr>
+                            <tr>
+                                <td>Potassium (K)</td>
+                                <td>5 - 205 mg/kg</td>
+                                <td>48.1 mg/kg</td>
+                            </tr>
+                            <tr>
+                                <td>Soil pH</td>
+                                <td>3.5 - 9.9</td>
+                                <td>6.47</td>
+                            </tr>
+                            <tr>
+                                <td>Temperature</td>
+                                <td>8.8°C - 43.7°C</td>
+                                <td>25.6°C</td>
+                            </tr>
+                            <tr>
+                                <td>Humidity</td>
+                                <td>14.3% - 100.0%</td>
+                                <td>71.5%</td>
+                            </tr>
+                            <tr>
+                                <td>Rainfall</td>
+                                <td>20.2 - 298.6 mm</td>
+                                <td>103.5 mm</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Exploratory Analysis plots display -->
+            <section class="glass-panel plots-panel">
+                <div class="panel-header">
+                    <i class="fa-solid fa-magnifying-glass-chart text-gradient"></i>
+                    <h2>Exploratory Insights</h2>
+                </div>
+                <div class="plot-item">
+                    <p class="plot-title">Soil and Weather Correlation Matrix</p>
+                    <img src="{{ url_for('static', filename='images/correlation_matrix.png') }}" alt="Soil & Environmental variables correlation heatmap" class="img-responsive rounded">
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- About Section: Fulfilling Business Analysis and literature survey requirements -->
+    <section class="glass-panel mt-4" id="about-section">
+        <div class="panel-header">
+            <i class="fa-solid fa-circle-info text-gradient"></i>
+            <h2>Project Scope & Social-Business Impact</h2>
+        </div>
+        <div class="about-grid">
+            <div class="about-col">
+                <h3>The Business Problem</h3>
+                <p>Traditional farming relies heavily on generalized or legacy fertilization practices. This lack of precision leads to two major problems: soil degradation from over-fertilization, and reduced crop yield from under-fertilization. OptiCrop addresses this by pairing machine learning classification algorithms with a chemical deficiency analysis engine.</p>
+                
+                <h3>Key Business Requirements</h3>
+                <ul>
+                    <li><strong>Accuracy:</strong> Real-time crop recommendations with >95% confidence based on soil composition.</li>
+                    <li><strong>Optimization Advisor:</strong> Mathematical offsets providing custom guidelines to adjust soil parameters for target crops.</li>
+                    <li><strong>Clean REST Services:</strong> Ability to expose APIs for integration with smart IoT devices.</li>
+                </ul>
+            </div>
+            
+            <div class="about-col">
+                <h3>Social & Business Impact</h3>
+                <p>By optimizing fertilizer consumption, OptiCrop reduces agricultural expenses by up to 25% while conserving groundwater resources from nitrate leaching. Accurate matching prevents crop failure under shifting regional climate profiles, securing food chains and stabilizing local rural economies.</p>
+                
+                <h3>Literature Survey Overview</h3>
+                <p>Recent studies in precision agriculture show that ensemble models (like Random Forests) outperform standard linear classifiers by capturing complex non-linear interactions between soil properties (NPK, pH) and dynamic weather inputs (rainfall, humidity). OptiCrop utilizes a Random Forest framework reaching an evaluation accuracy of 99.55%.</p>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
